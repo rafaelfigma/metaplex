@@ -33,36 +33,11 @@ import log from 'loglevel';
 
 export const createMetadata = async (): Promise<Data> => {
   // Metadata
-  // let metadata;
-  // try {
-  //   metadata = await (await fetch(metadataLink, { method: 'GET' })).json();
-  // } catch (e) {
-  //   log.debug(e);
-  //   log.error('Invalid metadata at', metadataLink);
-  //   return;
-  // }
+  // TODO (@rafa): This should be parameterized, so we provide the metadata that the application
+  // send us.
 
-  // // Validate metadata
-  // if (
-  //   !metadata.name ||
-  //   !metadata.image ||
-  //   isNaN(metadata.seller_fee_basis_points) ||
-  //   !metadata.properties ||
-  //   !Array.isArray(metadata.properties.creators)
-  // ) {
-  //   log.error('Invalid metadata file', metadata);
-  //   return;
-  // }
-
-  // // Validate creators
-  // const metaCreators = metadata.properties.creators;
-  // if (
-  //   metaCreators.some(creator => !creator.address) ||
-  //   metaCreators.reduce((sum, creator) => creator.share + sum, 0) !== 100
-  // ) {
-  //   return;
-  // }
-
+  // TODO (@rafa): Creator should be updated to be the address from the connected wallet.
+  // This should be another paramater that gets passed to mintNFT
   const creator = new Creator({
     address: 'HgrU4Q4Lvoo82tBek4EuVWsGdHWtojZGYKBEH7AwurgP',
     share: 100,
@@ -78,6 +53,8 @@ export const createMetadata = async (): Promise<Data> => {
   });
 };
 
+// TODO (@rafa): Update to be a connection and wallet that is provided from the context of the browser.
+// Right now I was testing this from the console so is slightly different.
 export const mintNFT = async (
   connection: Connection,
   walletKeypair: Keypair,
@@ -85,14 +62,12 @@ export const mintNFT = async (
 ): Promise<PublicKey | void> => {
   // Retrieve metadata
   const data = await createMetadata();
-  console.log('HERE 1');
   if (!data) return;
 
   // Create wallet from keypair
   const wallet = new anchor.Wallet(walletKeypair);
   if (!wallet?.publicKey) return;
 
-  console.log('HERE 2');
   // Allocate memory for the account
   const mintRent = await connection.getMinimumBalanceForRentExemption(
     MintLayout.span,
@@ -103,7 +78,6 @@ export const mintNFT = async (
   const instructions: TransactionInstruction[] = [];
   const signers: anchor.web3.Keypair[] = [mint, walletKeypair];
 
-  console.log('HERE 3');
   instructions.push(
     SystemProgram.createAccount({
       fromPubkey: wallet.publicKey,
