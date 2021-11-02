@@ -9,13 +9,12 @@ program.version('0.0.1');
 log.setLevel('info');
 
 programCommand('mint')
-  .option('-u, --url <string>', 'metadata url')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   .action(async (directory, cmd) => {
-    const { keypair, env, url } = cmd.opts();
+    const { keypair, env } = cmd.opts();
     const solConnection = new web3.Connection(web3.clusterApiUrl(env));
     const walletKeyPair = loadWalletKey(keypair);
-    await mintNFT(solConnection, walletKeyPair, url);
+    await mintNFT(solConnection, walletKeyPair);
   });
 
 programCommand('update-metadata')
@@ -23,11 +22,11 @@ programCommand('update-metadata')
   .option('-u, --url <string>', 'metadata url')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   .action(async (directory, cmd) => {
-    const { keypair, env, mint, url } = cmd.opts();
+    const { keypair, env, mint } = cmd.opts();
     const mintKey = new PublicKey(mint);
     const solConnection = new web3.Connection(web3.clusterApiUrl(env));
     const walletKeyPair = loadWalletKey(keypair);
-    await updateMetadata(mintKey, solConnection, walletKeyPair, url);
+    await updateMetadata(mintKey, solConnection, walletKeyPair);
   });
 
 function programCommand(name: string) {

@@ -21,7 +21,6 @@ import {
 } from '../helpers/schema';
 import { serialize } from 'borsh';
 import { TOKEN_PROGRAM_ID } from '../helpers/constants';
-import fetch from 'node-fetch';
 import { MintLayout, Token } from '@solana/spl-token';
 import {
   Keypair,
@@ -32,70 +31,68 @@ import {
 } from '@solana/web3.js';
 import log from 'loglevel';
 
-export const createMetadata = async (metadataLink: string): Promise<Data> => {
+export const createMetadata = async (): Promise<Data> => {
   // Metadata
-  let metadata;
-  try {
-    metadata = await (await fetch(metadataLink, { method: 'GET' })).json();
-  } catch (e) {
-    log.debug(e);
-    log.error('Invalid metadata at', metadataLink);
-    return;
-  }
+  // let metadata;
+  // try {
+  //   metadata = await (await fetch(metadataLink, { method: 'GET' })).json();
+  // } catch (e) {
+  //   log.debug(e);
+  //   log.error('Invalid metadata at', metadataLink);
+  //   return;
+  // }
 
-  // Validate metadata
-  if (
-    !metadata.name ||
-    !metadata.image ||
-    isNaN(metadata.seller_fee_basis_points) ||
-    !metadata.properties ||
-    !Array.isArray(metadata.properties.creators)
-  ) {
-    log.error('Invalid metadata file', metadata);
-    return;
-  }
+  // // Validate metadata
+  // if (
+  //   !metadata.name ||
+  //   !metadata.image ||
+  //   isNaN(metadata.seller_fee_basis_points) ||
+  //   !metadata.properties ||
+  //   !Array.isArray(metadata.properties.creators)
+  // ) {
+  //   log.error('Invalid metadata file', metadata);
+  //   return;
+  // }
 
-  // Validate creators
-  const metaCreators = metadata.properties.creators;
-  if (
-    metaCreators.some(creator => !creator.address) ||
-    metaCreators.reduce((sum, creator) => creator.share + sum, 0) !== 100
-  ) {
-    return;
-  }
+  // // Validate creators
+  // const metaCreators = metadata.properties.creators;
+  // if (
+  //   metaCreators.some(creator => !creator.address) ||
+  //   metaCreators.reduce((sum, creator) => creator.share + sum, 0) !== 100
+  // ) {
+  //   return;
+  // }
 
-  const creators = metaCreators.map(
-    creator =>
-      new Creator({
-        address: creator.address,
-        share: creator.share,
-        verified: 1,
-      }),
-  );
+  const creator = new Creator({
+    address: 'HgrU4Q4Lvoo82tBek4EuVWsGdHWtojZGYKBEH7AwurgP',
+    share: 100,
+    verified: 1,
+  });
 
   return new Data({
-    symbol: metadata.symbol,
-    name: metadata.name,
-    uri: metadataLink,
-    sellerFeeBasisPoints: metadata.seller_fee_basis_points,
-    creators: creators,
+    symbol: '',
+    name: 'YET ANOTHER TESt',
+    uri: 'https://arweave.net/9KnHpGOIakbJdzoKy7904GYdUilOH4WH8ELXoFO9VQs',
+    sellerFeeBasisPoints: 0,
+    creators: [creator],
   });
 };
 
 export const mintNFT = async (
   connection: Connection,
   walletKeypair: Keypair,
-  metadataLink: string,
   mutableMetadata: boolean = true,
 ): Promise<PublicKey | void> => {
   // Retrieve metadata
-  const data = await createMetadata(metadataLink);
+  const data = await createMetadata();
+  console.log('HERE 1');
   if (!data) return;
 
   // Create wallet from keypair
   const wallet = new anchor.Wallet(walletKeypair);
   if (!wallet?.publicKey) return;
 
+  console.log('HERE 2');
   // Allocate memory for the account
   const mintRent = await connection.getMinimumBalanceForRentExemption(
     MintLayout.span,
@@ -106,6 +103,7 @@ export const mintNFT = async (
   const instructions: TransactionInstruction[] = [];
   const signers: anchor.web3.Keypair[] = [mint, walletKeypair];
 
+  console.log('HERE 3');
   instructions.push(
     SystemProgram.createAccount({
       fromPubkey: wallet.publicKey,
@@ -213,10 +211,9 @@ export const updateMetadata = async (
   mintKey: PublicKey,
   connection: Connection,
   walletKeypair: Keypair,
-  metadataLink: string,
 ): Promise<PublicKey | void> => {
   // Retrieve metadata
-  const data = await createMetadata(metadataLink);
+  const data = await createMetadata();
   if (!data) return;
 
   const metadataAccount = await getMetadata(mintKey);
