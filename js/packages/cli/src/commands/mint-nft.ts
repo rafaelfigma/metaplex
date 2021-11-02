@@ -55,6 +55,7 @@ export const createMetadata = async (): Promise<Data> => {
 
 // TODO (@rafa): Update to be a connection and wallet that is provided from the context of the browser.
 // Right now I was testing this from the console so is slightly different.
+// TODO (@rafa): make metadata a parameter to this function.
 export const mintNFT = async (
   connection: Connection,
   walletKeypair: Keypair,
